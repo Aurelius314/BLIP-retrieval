@@ -4,12 +4,13 @@ from tqdm import tqdm
 import torch
 from PIL import Image
 from transformers import BlipForImageTextRetrieval, AutoProcessor
+import torch.nn.functional as F
 
 # ==============================
 # 路径配置
 # ==============================
 input_path = "/mnt/disk60T/dataset/Culture/Museum/Final_version/Final_Zhejiang.json"
-output_path = "/home/hsh/data/zj_blip1.json"
+output_path = "/home/hsh/BLIP-retrieval/zj_blip1.json"
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 
@@ -23,7 +24,7 @@ processor = AutoProcessor.from_pretrained("Salesforce/blip-itm-large-coco", loca
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 model.eval()
-print("BLIP1-large-for-zj 模型加载完成")
+print("BLIP1-large 模型加载完成")
 
 # ==============================
 # 编码函数
@@ -34,9 +35,16 @@ def encode_text(text: str):
         raise ValueError(f"text is required")
     inputs = processor(text=[text], return_tensors="pt", truncation=True).to(device)
     outputs = model.text_encoder(**inputs)
-    # 取 [CLS] token embedding
-    cls_emb = outputs.last_hidden_state[:, 0, :]  # shape [1, hidden_dim]
-    return cls_emb[0].cpu().numpy().tolist()
+    text_embeds = outputs.last_hidden_state
+    text_features = model.text_proj(text_embeds)
+    # mean pooling
+    attention_mask = inputs.attention_mask.unsqueeze(-1)  # [1, seq_len, 1]
+    masked_features = text_features * attention_mask
+    text_feat = masked_features.sum(dim=1) / attention_mask.sum(dim=1)  # [1, embed_dim]
+
+    text_feat = F.normalize(text_feat, dim=-1)  # cosine normalize
+
+    return text_feat[0].cpu().numpy().tolist()
 
 @torch.no_grad()
 def encode_image(image_path: str):
@@ -45,9 +53,12 @@ def encode_image(image_path: str):
     raw_image = Image.open(image_path).convert("RGB")
     inputs = processor(images=raw_image, return_tensors="pt").to(device)
     outputs = model.vision_model(**inputs)
-    # 取平均池化后的 embedding
-    img_emb = outputs.last_hidden_state.mean(dim=1)  # shape [1, hidden_dim]
-    return img_emb[0].cpu().numpy().tolist()
+    image_embeds = outputs.last_hidden_state
+    image_features = model.vision_proj(image_embeds)
+    image_features = image_features[:, 0, :] # cls
+    image_features = F.normalize(image_features, dim=-1)
+
+    return image_features[0].cpu().numpy().tolist()
 
 # ==============================
 # 主循环

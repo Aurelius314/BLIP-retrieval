@@ -1,0 +1,64 @@
+[
+  {
+    "split": "train",
+    "image": "1.png",
+    "image_id": 1,
+    "caption": "结构性文本1"
+  },
+  {
+    "split": "train",
+    "image": "1.png",
+    "image_id": 1,
+    "caption": "简介文本1"
+  },
+  {
+    "split": "train",
+    "image": "2.png",
+    "image_id": 2,
+    "caption": "结构性文本2"
+  },
+  {
+    "split": "train",
+    "image": "2.png",
+    "image_id": 2,
+    "caption": "简介文本2"
+  },
+  {
+    "split": "val",
+    "image": "3.jpg",
+    "image_id": 3,
+    "caption": "结构性文本3"
+  },
+  {
+    "split": "val",
+    "image": "3.jpg",
+    "image_id": 3,
+    "caption": "简介文本3"
+  },
+  {
+    "split": "test",
+    "image": "4.jpg",
+    "image_id": 4,
+    "caption": "结构性文本4"
+  },
+  {
+    "split": "test",
+    "image": "4.jpg",
+    "image_id": 4,
+    "caption": "简介文本4"
+  },
+  {
+    "split": "test",
+    "image": "5.jpg",
+    "image_id": 5,
+    "caption": "结构性文本5"
+  },
+  {
+    "split": "test",
+    "image": "5.jpg",
+    "image_id": 5,
+    "caption": "简介文本5"
+  }
+]
+
+
